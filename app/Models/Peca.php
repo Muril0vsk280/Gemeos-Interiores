@@ -78,4 +78,12 @@ class Peca extends Model
     {
         return $this->hasMany(PecaMaterial::class);
     }
+
+    public function historicos(): HasMany
+{
+    return $this->hasMany(
+        Historico::class,
+        'peca_id'
+    )->latest();
+}
 }
