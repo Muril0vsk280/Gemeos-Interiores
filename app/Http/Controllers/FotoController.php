@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Storage;
 
 class FotoController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | ADICIONAR FOTOS
+    |--------------------------------------------------------------------------
+    */
+
     public function store(Request $request, Peca $peca)
     {
         $dados = $request->validate([
@@ -32,110 +38,141 @@ class FotoController extends Controller
                 'max:10240',
             ],
         ]);
-        
-        
-        /*
-        |--------------------------------------------------------------------------
-        | Etapa da foto
-        |--------------------------------------------------------------------------
-        */
+
 
         $etapaId = $dados['etapa_id'] ?? null;
 
+
         /*
         |--------------------------------------------------------------------------
-        | Confirma se a etapa realmente pertence à peça
+        | CONFIRMA SE A ETAPA PERTENCE À PEÇA
         |--------------------------------------------------------------------------
         */
 
         if ($etapaId) {
-            $etapaPertenceAPeca = $peca->etapas()
-                ->where('etapas.id', $etapaId)
+
+            $etapaPertenceAPeca = $peca
+                ->etapas()
+                ->where(
+                    'etapas.id',
+                    $etapaId
+                )
                 ->exists();
 
+
             if (!$etapaPertenceAPeca) {
+
                 return back()->withErrors([
-                    'fotos' => 'A etapa selecionada não pertence a este modelo.',
+                    'fotos' =>
+                        'A etapa selecionada não pertence a este modelo.',
                 ]);
             }
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Define onde as imagens serão armazenadas
+        | PASTA
         |--------------------------------------------------------------------------
         */
 
         if ($etapaId) {
-            $pasta = "pecas/{$peca->id}/etapas/{$etapaId}";
+
+            $pasta =
+                "pecas/{$peca->id}/etapas/{$etapaId}";
+
         } else {
-            $pasta = "pecas/{$peca->id}/geral";
+
+            $pasta =
+                "pecas/{$peca->id}/geral";
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Descobre a próxima posição das fotos
+        | PRÓXIMA ORDEM
         |--------------------------------------------------------------------------
         */
 
-        $ultimaOrdem = Foto::where('peca_id', $peca->id)
-            ->where('etapa_id', $etapaId)
+        $ultimaOrdem = Foto::where(
+            'peca_id',
+            $peca->id
+        )
+            ->where(
+                'etapa_id',
+                $etapaId
+            )
             ->max('ordem') ?? 0;
 
+
+        $arquivos =
+            $request->file('fotos');
+
+
+        $quantidadeFotos =
+            count($arquivos);
+
+
         /*
         |--------------------------------------------------------------------------
-        | Arquivos enviados
-        |--------------------------------------------------------------------------
-        */
-
-        $arquivos = $request->file('fotos');
-
-        $quantidadeFotos = count($arquivos);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Salva todas as fotos
+        | SALVA
         |--------------------------------------------------------------------------
         */
 
         foreach ($arquivos as $arquivo) {
+
             $ultimaOrdem++;
 
-            $caminho = $arquivo->store(
-                $pasta,
-                'public'
-            );
+
+            $caminho =
+                $arquivo->store(
+                    $pasta,
+                    'public'
+                );
+
 
             Foto::create([
-                'peca_id' => $peca->id,
-                'etapa_id' => $etapaId,
-                'caminho' => $caminho,
-                'nome_original' => $arquivo->getClientOriginalName(),
-                'ordem' => $ultimaOrdem,
+                'peca_id' =>
+                    $peca->id,
+
+                'etapa_id' =>
+                    $etapaId,
+
+                'caminho' =>
+                    $caminho,
+
+                'nome_original' =>
+                    $arquivo->getClientOriginalName(),
+
+                'ordem' =>
+                    $ultimaOrdem,
             ]);
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Monta a descrição do histórico
+        | HISTÓRICO
         |--------------------------------------------------------------------------
         */
 
         if ($etapaId) {
-            $etapa = Etapa::findOrFail($etapaId);
+
+            $etapa =
+                Etapa::findOrFail(
+                    $etapaId
+                );
+
 
             $descricaoHistorico =
                 "Adicionou {$quantidadeFotos} foto(s) na etapa {$etapa->nome}.";
+
         } else {
+
             $descricaoHistorico =
                 "Adicionou {$quantidadeFotos} foto(s) gerais ao modelo.";
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Registra no histórico
-        |--------------------------------------------------------------------------
-        */
 
         HistoricoService::registrar(
             $peca,
@@ -144,111 +181,378 @@ class FotoController extends Controller
             'fotos'
         );
 
+
         return redirect()
-            ->route('pecas.show', $peca)
+            ->route(
+                'pecas.show',
+                $peca
+            )
             ->with(
                 'sucesso',
                 'Fotos adicionadas com sucesso.'
             );
     }
 
-    /*
-|--------------------------------------------------------------------------
-| EXCLUIR FOTO
-|--------------------------------------------------------------------------
-*/
 
-public function destroy(Peca $peca, Foto $foto)
-{
     /*
     |--------------------------------------------------------------------------
-    | SEGURANÇA
+    | CADASTRAR FOTO PRINCIPAL
     |--------------------------------------------------------------------------
     |
-    | Impede excluir uma foto de outra peça alterando o ID na URL.
+    | Usado quando o modelo ainda não possui nenhuma foto geral.
     |
     */
 
-    if ((int) $foto->peca_id !== (int) $peca->id) {
-        abort(404);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | INFORMAÇÕES PARA O HISTÓRICO
-    |--------------------------------------------------------------------------
-    */
-
-    if ($foto->etapa_id) {
-
-        $etapa = Etapa::find($foto->etapa_id);
-
-        $descricaoHistorico = $etapa
-            ? "Removeu uma foto da etapa {$etapa->nome}."
-            : 'Removeu uma foto de uma etapa.';
-
-    } else {
-
-        $descricaoHistorico =
-            'Removeu uma foto geral do modelo.';
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | GUARDA ID ANTES DE EXCLUIR
-    |--------------------------------------------------------------------------
-    */
-
-    $fotoId = $foto->id;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | EXCLUI O ARQUIVO DO STORAGE
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $foto->caminho &&
-        Storage::disk('public')->exists($foto->caminho)
+    public function storePrincipal(
+        Request $request,
+        Peca $peca
     ) {
-        Storage::disk('public')->delete(
-            $foto->caminho
+
+        $request->validate([
+            'foto' => [
+                'required',
+                'image',
+                'max:10240',
+            ],
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NÃO PERMITE CRIAR OUTRA PRINCIPAL
+        |--------------------------------------------------------------------------
+        */
+
+        $jaExiste =
+            Foto::where(
+                'peca_id',
+                $peca->id
+            )
+                ->whereNull(
+                    'etapa_id'
+                )
+                ->exists();
+
+
+        if ($jaExiste) {
+
+            return back()->withErrors([
+                'foto' =>
+                    'Este modelo já possui uma foto principal.',
+            ]);
+        }
+
+
+        $arquivo =
+            $request->file('foto');
+
+
+        $caminho =
+            $arquivo->store(
+                "pecas/{$peca->id}/geral",
+                'public'
+            );
+
+
+        $foto = Foto::create([
+            'peca_id' =>
+                $peca->id,
+
+            'etapa_id' =>
+                null,
+
+            'caminho' =>
+                $caminho,
+
+            'nome_original' =>
+                $arquivo->getClientOriginalName(),
+
+            'ordem' =>
+                1,
+        ]);
+
+
+        HistoricoService::registrar(
+            $peca,
+            'FOTO_PRINCIPAL_ADICIONADA',
+            'Adicionou a foto principal do modelo.',
+            'fotos',
+            $foto->id
         );
+
+
+        return redirect()
+            ->route(
+                'pecas.edit',
+                $peca
+            )
+            ->with(
+                'sucesso',
+                'Foto principal adicionada com sucesso.'
+            );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | EXCLUI DO BANCO
+    | TROCAR FOTO PRINCIPAL
     |--------------------------------------------------------------------------
     */
 
-    $foto->delete();
+    public function updatePrincipal(
+        Request $request,
+        Peca $peca,
+        Foto $foto
+    ) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEGURANÇA
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            (int) $foto->peca_id !==
+            (int) $peca->id
+        ) {
+            abort(404);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NÃO PERMITE USAR FOTO DE ETAPA
+        |--------------------------------------------------------------------------
+        */
+
+        if ($foto->etapa_id !== null) {
+            abort(404);
+        }
+
+
+        $request->validate([
+            'foto' => [
+                'required',
+                'image',
+                'max:10240',
+            ],
+        ]);
+
+
+        $arquivo =
+            $request->file('foto');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALVA NOVA FOTO PRIMEIRO
+        |--------------------------------------------------------------------------
+        */
+
+        $novoCaminho =
+            $arquivo->store(
+                "pecas/{$peca->id}/geral",
+                'public'
+            );
+
+
+        $caminhoAntigo =
+            $foto->caminho;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ATUALIZA O REGISTRO
+        |--------------------------------------------------------------------------
+        */
+
+        $foto->update([
+            'caminho' =>
+                $novoCaminho,
+
+            'nome_original' =>
+                $arquivo->getClientOriginalName(),
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | APAGA ARQUIVO ANTIGO
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $caminhoAntigo &&
+            Storage::disk('public')
+                ->exists($caminhoAntigo)
+        ) {
+
+            Storage::disk('public')
+                ->delete($caminhoAntigo);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | HISTÓRICO
+        |--------------------------------------------------------------------------
+        */
+
+        HistoricoService::registrar(
+            $peca,
+            'FOTO_PRINCIPAL_ATUALIZADA',
+            'Alterou a foto principal do modelo.',
+            'fotos',
+            $foto->id
+        );
+
+
+        return redirect()
+            ->route(
+                'pecas.edit',
+                $peca
+            )
+            ->with(
+                'sucesso',
+                'Foto principal atualizada com sucesso.'
+            );
+    }
 
 
     /*
     |--------------------------------------------------------------------------
-    | HISTÓRICO
+    | EXCLUIR FOTO
     |--------------------------------------------------------------------------
     */
 
-    HistoricoService::registrar(
-        $peca,
-        'FOTO_REMOVIDA',
-        $descricaoHistorico,
-        'fotos',
-        $fotoId
-    );
+    public function destroy(
+        Request $request,
+        Peca $peca,
+        Foto $foto
+    ) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEGURANÇA
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            (int) $foto->peca_id !==
+            (int) $peca->id
+        ) {
+            abort(404);
+        }
 
 
-    return redirect()
-        ->route('pecas.show', $peca)
-        ->with(
-            'sucesso',
-            'Foto removida com sucesso.'
+        /*
+        |--------------------------------------------------------------------------
+        | HISTÓRICO
+        |--------------------------------------------------------------------------
+        */
+
+        if ($foto->etapa_id) {
+
+            $etapa =
+                Etapa::find(
+                    $foto->etapa_id
+                );
+
+
+            $descricaoHistorico =
+                $etapa
+                    ? "Removeu uma foto da etapa {$etapa->nome}."
+                    : 'Removeu uma foto de uma etapa.';
+
+        } else {
+
+            $descricaoHistorico =
+                'Removeu uma foto geral do modelo.';
+        }
+
+
+        $fotoId =
+            $foto->id;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXCLUI ARQUIVO
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $foto->caminho &&
+            Storage::disk('public')
+                ->exists($foto->caminho)
+        ) {
+
+            Storage::disk('public')
+                ->delete(
+                    $foto->caminho
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXCLUI BANCO
+        |--------------------------------------------------------------------------
+        */
+
+        $foto->delete();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REGISTRA HISTÓRICO
+        |--------------------------------------------------------------------------
+        */
+
+        HistoricoService::registrar(
+            $peca,
+            'FOTO_REMOVIDA',
+            $descricaoHistorico,
+            'fotos',
+            $fotoId
         );
-}
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RETORNO
+        |--------------------------------------------------------------------------
+        |
+        | Se a exclusão foi feita na tela de edição,
+        | permanece na tela de edição.
+        |
+        */
+
+        if (
+            $request->input('origem') ===
+            'edit'
+        ) {
+
+            return redirect()
+                ->route(
+                    'pecas.edit',
+                    $peca
+                )
+                ->with(
+                    'sucesso',
+                    'Foto removida com sucesso.'
+                );
+        }
+
+
+        return redirect()
+            ->route(
+                'pecas.show',
+                $peca
+            )
+            ->with(
+                'sucesso',
+                'Foto removida com sucesso.'
+            );
+    }
 }

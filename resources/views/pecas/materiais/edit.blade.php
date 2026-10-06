@@ -1,312 +1,125 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+@extends('layouts.app')
 
-<head>
 
-    <meta charset="UTF-8">
+@section('title', 'Editar material - Gêmeos Interiores')
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
 
-    <title>
-        Editar material
-    </title>
+@section('content')
 
-    <style>
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-
-            font-family: Arial, sans-serif;
-
-            background: #f5f5f5;
-            color: #222;
-        }
-
-        header {
-            background: #1f1f1f;
-            color: white;
-
-            padding: 20px 40px;
-        }
-
-        header a {
-            color: white;
-            text-decoration: none;
-        }
-
-        main {
-            max-width: 800px;
-
-            margin: auto;
-
-            padding: 40px 20px;
-        }
-
-        .voltar {
-            display: inline-block;
-
-            margin-bottom: 25px;
-
-            color: #555;
-
-            text-decoration: none;
-        }
-
-        .box {
-            background: white;
-
-            padding: 30px;
-
-            border-radius: 10px;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        h1 {
-            margin-top: 0;
-        }
-
-        .info {
-            background: #f7f7f7;
-
-            padding: 15px;
-
-            border-radius: 7px;
-
-            margin-bottom: 25px;
-        }
-
-        .campo {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-
-            font-weight: bold;
-
-            margin-bottom: 7px;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-
-            padding: 12px;
-
-            border: 1px solid #ccc;
-
-            border-radius: 7px;
-
-            font-size: 15px;
-
-            font-family: Arial, sans-serif;
-        }
-
-        textarea {
-            min-height: 110px;
-
-            resize: vertical;
-        }
-
-        .linha {
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 15px;
-        }
-
-        button {
-            border: none;
-
-            background: #222;
-            color: white;
-
-            padding: 13px 22px;
-
-            border-radius: 7px;
-
-            cursor: pointer;
-
-            font-weight: bold;
-        }
-
-        .erro {
-            background: #ffe5e5;
-            color: #a40000;
-
-            padding: 15px;
-
-            border-radius: 8px;
-
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 650px) {
-
-            .linha {
-                grid-template-columns: 1fr;
-            }
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-<header>
-
-    <a href="{{ route('dashboard') }}">
-
-        <strong>
-            GÊMEOS INTERIORES
-        </strong>
-
-    </a>
-
-</header>
-
-
-<main>
+<div style="margin-bottom:20px;">
 
     <a
         href="{{ route('pecas.show', $peca) }}"
-        class="voltar"
+        class="botao botao-secundario"
     >
         ← Voltar para o modelo
     </a>
 
-
-    <div class="box">
-
-        <h1>
-            Editar material
-        </h1>
+</div>
 
 
-        <div class="info">
+<div class="titulo-pagina">
 
-            <strong>
-                {{ $pecaMaterial->material->nome }}
-            </strong>
+    <h1>
+        Editar material
+    </h1>
 
-            <br><br>
+    <p>
+        Altere as informações utilizadas neste modelo.
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <div class="modelo-descricao">
+
+        <strong>
+            {{ $pecaMaterial->material->nome }}
+        </strong>
+
+        <p style="margin-bottom:0;">
 
             Modelo:
-
             {{ $peca->codigo }}
             —
             {{ $peca->nome }}
-
 
             @if ($pecaMaterial->etapa)
 
                 <br>
 
                 Etapa:
-
                 {{ $pecaMaterial->etapa->nome }}
 
             @endif
 
-        </div>
+        </p>
+
+    </div>
 
 
-        @if ($errors->any())
+    <form
+        method="POST"
+        action="{{ route(
+            'pecas.materiais.update',
+            [
+                $peca,
+                $pecaMaterial
+            ]
+        ) }}"
+    >
 
-            <div class="erro">
-
-                <strong>
-                    Corrija os campos:
-                </strong>
-
-                <ul>
-
-                    @foreach ($errors->all() as $erro)
-
-                        <li>
-                            {{ $erro }}
-                        </li>
-
-                    @endforeach
-
-                </ul>
-
-            </div>
-
-        @endif
+        @csrf
+        @method('PUT')
 
 
-        <form
-            method="POST"
-            action="{{ route(
-                'pecas.materiais.update',
-                [$peca, $pecaMaterial]
-            ) }}"
-        >
+        <div class="form-grid">
 
-            @csrf
-            @method('PUT')
+            <div class="campo">
 
+                <label for="quantidade">
+                    Quantidade
+                </label>
 
-            <div class="linha">
-
-                <div class="campo">
-
-                    <label for="quantidade">
-                        Quantidade
-                    </label>
-
-                    <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        name="quantidade"
-                        id="quantidade"
-                        value="{{ old(
-                            'quantidade',
-                            $pecaMaterial->quantidade
-                        ) }}"
-                    >
-
-                </div>
-
-
-                <div class="campo">
-
-                    <label for="unidade">
-                        Unidade
-                    </label>
-
-                    <input
-                        type="text"
-                        name="unidade"
-                        id="unidade"
-                        placeholder="Ex: un, cm, m"
-                        value="{{ old(
-                            'unidade',
-                            $pecaMaterial->unidade
-                        ) }}"
-                    >
-
-                </div>
+                <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="quantidade"
+                    id="quantidade"
+                    value="{{ old(
+                        'quantidade',
+                        $pecaMaterial->quantidade
+                    ) }}"
+                >
 
             </div>
 
 
             <div class="campo">
+
+                <label for="unidade">
+                    Unidade
+                </label>
+
+                <input
+                    type="text"
+                    name="unidade"
+                    id="unidade"
+                    placeholder="Ex: un, cm, m, kg"
+                    value="{{ old(
+                        'unidade',
+                        $pecaMaterial->unidade
+                    ) }}"
+                >
+
+            </div>
+
+
+            <div class="campo campo-largo">
 
                 <label for="observacao">
                     Observação
@@ -315,6 +128,7 @@
                 <textarea
                     name="observacao"
                     id="observacao"
+                    rows="4"
                     placeholder="Observações sobre o uso deste material..."
                 >{{ old(
                     'observacao',
@@ -324,16 +138,76 @@
             </div>
 
 
-            <button type="submit">
-                Salvar alterações
-            </button>
+            <div class="campo-largo">
 
-        </form>
+                <button
+                    type="submit"
+                    class="botao"
+                >
+                    Salvar alterações
+                </button>
 
-    </div>
+            </div>
 
-</main>
+        </div>
 
-</body>
+    </form>
 
-</html>
+</div>
+
+
+{{-- ============================================================ --}}
+{{-- EXCLUIR MATERIAL --}}
+{{-- ============================================================ --}}
+
+<div class="zona-perigo">
+
+    <h3>
+        Excluir material desta etapa
+    </h3>
+
+    <p>
+        Use esta opção somente se
+        <strong>{{ $pecaMaterial->material->nome }}</strong>
+        não fizer mais parte desta etapa do modelo.
+    </p>
+
+    <p>
+        O material continuará disponível no sistema caso seja
+        utilizado por outros modelos.
+    </p>
+
+
+    <form
+        method="POST"
+        action="{{ route(
+            'pecas.materiais.destroy',
+            [
+                $peca,
+                $pecaMaterial
+            ]
+        ) }}"
+        onsubmit="
+            return confirm(
+                'Tem certeza que deseja remover este material desta peça?'
+            );
+        "
+    >
+
+        @csrf
+        @method('DELETE')
+
+
+        <button
+            type="submit"
+            class="botao botao-perigo"
+        >
+            Excluir material
+        </button>
+
+    </form>
+
+</div>
+
+
+@endsection

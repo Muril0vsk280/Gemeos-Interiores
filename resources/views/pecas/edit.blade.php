@@ -1,269 +1,348 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+@extends('layouts.app')
 
-<head>
 
-    <meta charset="UTF-8">
+@section('title', 'Editar ' . $peca->codigo)
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
 
-    <title>
-        Editar {{ $peca->codigo }}
-    </title>
+@php
 
-    <style>
+    $fotoPrincipal =
+        $peca->fotos
+            ->whereNull('etapa_id')
+            ->sortBy('ordem')
+            ->first();
 
-        * {
-            box-sizing: border-box;
-        }
+@endphp
 
-        body {
-            margin: 0;
 
-            font-family: Arial, sans-serif;
+@section('content')
 
-            background: #f5f5f5;
-            color: #222;
-        }
 
-        header {
-            background: #1f1f1f;
-            color: white;
-
-            padding: 20px 40px;
-        }
-
-        header a {
-            color: white;
-
-            text-decoration: none;
-        }
-
-        main {
-            max-width: 850px;
-
-            margin: auto;
-
-            padding: 40px 20px;
-        }
-
-        .voltar {
-            display: inline-block;
-
-            margin-bottom: 25px;
-
-            color: #555;
-
-            text-decoration: none;
-        }
-
-        .box {
-            background: white;
-
-            padding: 30px;
-
-            border-radius: 10px;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        h1 {
-            margin-top: 0;
-        }
-
-        .campo {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-
-            font-weight: bold;
-
-            margin-bottom: 7px;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-
-            padding: 12px;
-
-            border: 1px solid #ccc;
-
-            border-radius: 7px;
-
-            font-size: 15px;
-
-            font-family: Arial, sans-serif;
-        }
-
-        textarea {
-            min-height: 110px;
-
-            resize: vertical;
-        }
-
-        .linha {
-            display: grid;
-
-            grid-template-columns:
-                1fr 2fr;
-
-            gap: 15px;
-        }
-
-        button {
-            border: none;
-
-            background: #222;
-            color: white;
-
-            padding: 13px 22px;
-
-            border-radius: 7px;
-
-            cursor: pointer;
-
-            font-weight: bold;
-
-            font-size: 14px;
-        }
-
-        .erro {
-            background: #ffe5e5;
-            color: #a40000;
-
-            padding: 15px;
-
-            border-radius: 8px;
-
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 700px) {
-
-            .linha {
-                grid-template-columns: 1fr;
-            }
-
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<header>
-
-    <a href="{{ route('dashboard') }}">
-
-        <strong>
-            GÊMEOS INTERIORES
-        </strong>
-
-    </a>
-
-</header>
-
-<main>
+<div style="margin-bottom:20px;">
 
     <a
-        href="{{ route('pecas.show', $peca) }}"
-        class="voltar"
+        href="{{ route(
+            'pecas.show',
+            $peca
+        ) }}"
+        class="botao botao-secundario"
     >
         ← Voltar para o modelo
     </a>
 
-    <div class="box">
+</div>
 
-        <h1>
-            Editar modelo
-        </h1>
 
-        <p style="color:#777;">
+<div class="titulo-pagina">
 
-            {{ $peca->codigo }}
-            —
-            {{ $peca->nome }}
+    <h1>
+        Editar modelo
+    </h1>
 
-        </p>
+    <p>
 
-        @if ($errors->any())
+        {{ $peca->codigo }}
+        —
+        {{ $peca->nome }}
 
-            <div class="erro">
+    </p>
 
-                <strong>
-                    Corrija os campos abaixo:
-                </strong>
+</div>
 
-                <ul>
 
-                    @foreach ($errors->all() as $erro)
+{{-- ============================================================ --}}
+{{-- FOTO PRINCIPAL --}}
+{{-- ============================================================ --}}
 
-                        <li>
-                            {{ $erro }}
-                        </li>
+<div
+    class="card"
+    style="margin-bottom:25px;"
+>
 
-                    @endforeach
+    <h2>
+        Foto principal
+    </h2>
 
-                </ul>
+    <p style="color:var(--cor-texto-suave);">
 
-            </div>
+        Esta é a primeira imagem usada para
+        identificar o modelo.
 
-        @endif
+    </p>
 
-        <form
-            method="POST"
-            action="{{ route('pecas.update', $peca) }}"
+
+    @if ($fotoPrincipal)
+
+        <div class="foto-principal-edicao">
+
+            <img
+                src="{{ asset(
+                    'storage/' .
+                    $fotoPrincipal->caminho
+                ) }}"
+                alt="{{ $peca->nome }}"
+            >
+
+        </div>
+
+
+        {{-- TROCAR --}}
+
+        <details
+            class="container-expansivel"
+            style="
+                margin-top:20px;
+                box-shadow:none;
+            "
         >
 
-            @csrf
-            @method('PUT')
+            <summary>
+                Trocar foto principal
+            </summary>
 
-            <div class="linha">
 
-                <div class="campo">
+            <div class="container-conteudo">
 
-                    <label for="codigo">
-                        Código
-                    </label>
+                <form
+                    method="POST"
+                    action="{{ route(
+                        'pecas.foto-principal.update',
+                        [
+                            $peca,
+                            $fotoPrincipal
+                        ]
+                    ) }}"
+                    enctype="multipart/form-data"
+                >
 
-                    <input
-                        type="text"
-                        id="codigo"
-                        name="codigo"
-                        value="{{ old('codigo', $peca->codigo) }}"
-                        required
+                    @csrf
+                    @method('PUT')
+
+
+                    <div class="campo">
+
+                        <label for="foto">
+                            Escolha a nova foto
+                        </label>
+
+                        <input
+                            type="file"
+                            name="foto"
+                            id="foto"
+                            accept="image/*"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="botao"
                     >
+                        Trocar foto
+                    </button>
 
-                </div>
-
-                <div class="campo">
-
-                    <label for="nome">
-                        Nome do modelo
-                    </label>
-
-                    <input
-                        type="text"
-                        id="nome"
-                        name="nome"
-                        value="{{ old('nome', $peca->nome) }}"
-                        required
-                    >
-
-                </div>
+                </form>
 
             </div>
 
+        </details>
+
+
+        {{-- EXCLUIR --}}
+
+        <div
+            class="zona-perigo"
+            style="margin-top:20px;"
+        >
+
+            <h3>
+                Excluir foto principal
+            </h3>
+
+            <p>
+                O modelo continuará cadastrado,
+                mas ficará sem foto principal.
+            </p>
+
+
+            <form
+                method="POST"
+                action="{{ route(
+                    'pecas.fotos.destroy',
+                    [
+                        $peca,
+                        $fotoPrincipal
+                    ]
+                ) }}"
+                onsubmit="
+                    return confirm(
+                        'Tem certeza que deseja excluir a foto principal?'
+                    );
+                "
+            >
+
+                @csrf
+                @method('DELETE')
+
+
+                <input
+                    type="hidden"
+                    name="origem"
+                    value="edit"
+                >
+
+
+                <button
+                    type="submit"
+                    class="botao botao-perigo"
+                >
+                    Excluir foto principal
+                </button>
+
+            </form>
+
+        </div>
+
+
+    @else
+
+        <div class="sem-informacao">
+
+            Este modelo ainda não possui
+            foto principal.
+
+        </div>
+
+
+        <details
+            class="container-expansivel"
+            style="
+                margin-top:20px;
+                box-shadow:none;
+            "
+        >
+
+            <summary>
+                Adicionar foto principal
+            </summary>
+
+
+            <div class="container-conteudo">
+
+                <form
+                    method="POST"
+                    action="{{ route(
+                        'pecas.foto-principal.store',
+                        $peca
+                    ) }}"
+                    enctype="multipart/form-data"
+                >
+
+                    @csrf
+
+
+                    <div class="campo">
+
+                        <label>
+                            Escolha uma foto
+                        </label>
+
+                        <input
+                            type="file"
+                            name="foto"
+                            accept="image/*"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="botao"
+                    >
+                        Adicionar foto principal
+                    </button>
+
+                </form>
+
+            </div>
+
+        </details>
+
+    @endif
+
+</div>
+
+
+{{-- ============================================================ --}}
+{{-- INFORMAÇÕES DO MODELO --}}
+{{-- ============================================================ --}}
+
+<div class="card">
+
+    <h2>
+        Informações do modelo
+    </h2>
+
+
+    <form
+        method="POST"
+        action="{{ route(
+            'pecas.update',
+            $peca
+        ) }}"
+    >
+
+        @csrf
+        @method('PUT')
+
+
+        <div class="form-grid">
+
             <div class="campo">
+
+                <label for="codigo">
+                    Código
+                </label>
+
+                <input
+                    type="text"
+                    id="codigo"
+                    name="codigo"
+                    value="{{ old(
+                        'codigo',
+                        $peca->codigo
+                    ) }}"
+                    required
+                >
+
+            </div>
+
+
+            <div class="campo">
+
+                <label for="nome">
+                    Nome do modelo
+                </label>
+
+                <input
+                    type="text"
+                    id="nome"
+                    name="nome"
+                    value="{{ old(
+                        'nome',
+                        $peca->nome
+                    ) }}"
+                    required
+                >
+
+            </div>
+
+
+            <div class="campo campo-largo">
 
                 <label for="tipo_peca_id">
                     Tipo da peça
@@ -297,7 +376,8 @@
 
             </div>
 
-            <div class="campo">
+
+            <div class="campo campo-largo">
 
                 <label for="descricao">
                     Descrição
@@ -306,12 +386,17 @@
                 <textarea
                     name="descricao"
                     id="descricao"
+                    rows="4"
                     placeholder="Descrição geral do modelo..."
-                >{{ old('descricao', $peca->descricao) }}</textarea>
+                >{{ old(
+                    'descricao',
+                    $peca->descricao
+                ) }}</textarea>
 
             </div>
 
-            <div class="campo">
+
+            <div class="campo campo-largo">
 
                 <label for="observacoes">
                     Observações
@@ -320,21 +405,32 @@
                 <textarea
                     name="observacoes"
                     id="observacoes"
+                    rows="4"
                     placeholder="Observações importantes..."
-                >{{ old('observacoes', $peca->observacoes) }}</textarea>
+                >{{ old(
+                    'observacoes',
+                    $peca->observacoes
+                ) }}</textarea>
 
             </div>
 
-            <button type="submit">
-                Salvar alterações
-            </button>
 
-        </form>
+            <div class="campo-largo">
 
-    </div>
+                <button
+                    type="submit"
+                    class="botao"
+                >
+                    Salvar alterações
+                </button>
 
-</main>
+            </div>
 
-</body>
+        </div>
 
-</html>
+    </form>
+
+</div>
+
+
+@endsection

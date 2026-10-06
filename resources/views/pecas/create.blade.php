@@ -1,265 +1,89 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+@extends('layouts.app')
 
-<head>
 
-    <meta charset="UTF-8">
+@section('title', 'Novo modelo - Gêmeos Interiores')
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
 
-    <title>Novo Modelo - Gêmeos Interiores</title>
+@section('content')
 
-    <style>
 
-        * {
-            box-sizing: border-box;
-        }
+{{-- ============================================================ --}}
+{{-- VOLTAR --}}
+{{-- ============================================================ --}}
 
-        body {
-            margin: 0;
-
-            font-family: Arial, sans-serif;
-
-            background: #f5f5f5;
-            color: #222;
-        }
-
-        header {
-            background: #1f1f1f;
-            color: white;
-
-            padding: 20px 40px;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header a {
-            color: white;
-            text-decoration: none;
-        }
-
-        main {
-            max-width: 900px;
-
-            margin: auto;
-            padding: 40px 20px;
-        }
-
-        .voltar {
-            color: #555;
-            text-decoration: none;
-        }
-
-        .formulario {
-            background: white;
-
-            padding: 30px;
-
-            margin-top: 25px;
-
-            border-radius: 12px;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.06);
-        }
-
-        .campo {
-            margin-bottom: 22px;
-        }
-
-        label {
-            display: block;
-
-            font-weight: bold;
-
-            margin-bottom: 7px;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-
-            padding: 13px;
-
-            border: 1px solid #ccc;
-            border-radius: 7px;
-
-            font-size: 16px;
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .linha {
-            display: grid;
-
-            grid-template-columns: 1fr 2fr;
-
-            gap: 20px;
-        }
-
-        .erro {
-            color: #b00020;
-            font-size: 14px;
-
-            margin-top: 5px;
-        }
-
-        .erros {
-            background: #ffe7e7;
-
-            color: #a00000;
-
-            padding: 15px;
-
-            margin-bottom: 25px;
-
-            border-radius: 8px;
-        }
-
-        .acoes {
-            display: flex;
-
-            justify-content: flex-end;
-
-            gap: 10px;
-
-            margin-top: 30px;
-        }
-
-        .cancelar {
-            padding: 13px 22px;
-
-            text-decoration: none;
-
-            border: 1px solid #ccc;
-            border-radius: 7px;
-
-            color: #333;
-        }
-
-        button {
-            border: none;
-
-            background: #222;
-            color: white;
-
-            padding: 13px 25px;
-
-            border-radius: 7px;
-
-            font-size: 16px;
-            font-weight: bold;
-
-            cursor: pointer;
-        }
-
-        @media (max-width: 700px) {
-
-            .linha {
-                grid-template-columns: 1fr;
-            }
-
-            header {
-                padding: 18px;
-            }
-
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<header>
-
-    <a href="{{ route('dashboard') }}">
-
-        <strong>
-            GÊMEOS INTERIORES
-        </strong>
-
-    </a>
-
-    <span>
-        {{ auth()->user()->name }}
-    </span>
-
-</header>
-
-
-<main>
+<div style="margin-bottom:20px;">
 
     <a
         href="{{ route('pecas.index') }}"
-        class="voltar"
+        class="botao botao-secundario"
     >
         ← Voltar para modelos
     </a>
 
+</div>
+
+
+{{-- ============================================================ --}}
+{{-- CABEÇALHO --}}
+{{-- ============================================================ --}}
+
+<div class="titulo-pagina">
 
     <h1>
         Novo modelo
     </h1>
 
     <p>
-        Cadastre as informações principais do modelo.
-        Depois será possível adicionar medidas, etapas,
-        materiais e fotos.
+        Cadastre primeiro as informações principais.
+        Depois você poderá adicionar fotos, medidas,
+        materiais e as etapas de fabricação.
     </p>
 
+</div>
 
-    <div class="formulario">
+
+{{-- ============================================================ --}}
+{{-- FORMULÁRIO --}}
+{{-- ============================================================ --}}
+
+<div class="card">
+
+    <form
+        method="POST"
+        action="{{ route('pecas.store') }}"
+    >
+
+        @csrf
 
 
-        @if ($errors->any())
+        {{-- ======================================================== --}}
+        {{-- IDENTIFICAÇÃO --}}
+        {{-- ======================================================== --}}
 
-            <div class="erros">
+        <div class="formulario-secao">
 
-                <strong>
-                    Verifique as informações:
-                </strong>
+            <div class="formulario-secao-cabecalho">
 
-                <ul>
+                <h2>
+                    Identificação
+                </h2>
 
-                    @foreach ($errors->all() as $erro)
-
-                        <li>
-                            {{ $erro }}
-                        </li>
-
-                    @endforeach
-
-                </ul>
+                <p>
+                    Informações usadas para localizar o modelo.
+                </p>
 
             </div>
 
-        @endif
 
+            <div class="form-grid">
 
-        <form
-            method="POST"
-            action="{{ route('pecas.store') }}"
-        >
-
-            @csrf
-
-
-            <div class="linha">
+                {{-- CÓDIGO --}}
 
                 <div class="campo">
 
                     <label for="codigo">
-                        Código *
+                        Código
+                        <span class="campo-obrigatorio">*</span>
                     </label>
 
                     <input
@@ -268,24 +92,33 @@
                         name="codigo"
                         value="{{ old('codigo') }}"
                         placeholder="Ex: CAD-002"
+                        autocomplete="off"
                         required
+                        autofocus
                     >
 
                     @error('codigo')
 
-                        <div class="erro">
+                        <div class="mensagem-campo-erro">
                             {{ $message }}
                         </div>
 
                     @enderror
 
+                    <small class="campo-ajuda">
+                        Use o código pelo qual a peça já é conhecida na fábrica.
+                    </small>
+
                 </div>
 
+
+                {{-- NOME --}}
 
                 <div class="campo">
 
                     <label for="nome">
-                        Nome do modelo *
+                        Nome do modelo
+                        <span class="campo-obrigatorio">*</span>
                     </label>
 
                     <input
@@ -294,50 +127,93 @@
                         name="nome"
                         value="{{ old('nome') }}"
                         placeholder="Ex: Cadeira Roma"
+                        autocomplete="off"
                         required
                     >
+
+                    @error('nome')
+
+                        <div class="mensagem-campo-erro">
+                            {{ $message }}
+                        </div>
+
+                    @enderror
+
+                </div>
+
+
+                {{-- TIPO --}}
+
+                <div class="campo campo-largo">
+
+                    <label for="tipo_peca_id">
+                        Tipo do modelo
+                        <span class="campo-obrigatorio">*</span>
+                    </label>
+
+                    <select
+                        id="tipo_peca_id"
+                        name="tipo_peca_id"
+                        required
+                    >
+
+                        <option value="">
+                            Selecione o tipo
+                        </option>
+
+
+                        @foreach ($tipos as $tipo)
+
+                            <option
+                                value="{{ $tipo->id }}"
+                                @selected(
+                                    (string) old('tipo_peca_id') ===
+                                    (string) $tipo->id
+                                )
+                            >
+                                {{ $tipo->nome }}
+                            </option>
+
+                        @endforeach
+
+                    </select>
+
+
+                    @error('tipo_peca_id')
+
+                        <div class="mensagem-campo-erro">
+                            {{ $message }}
+                        </div>
+
+                    @enderror
 
                 </div>
 
             </div>
 
-
-            <div class="campo">
-
-                <label for="tipo_peca_id">
-                    Tipo *
-                </label>
-
-                <select
-                    id="tipo_peca_id"
-                    name="tipo_peca_id"
-                    required
-                >
-
-                    <option value="">
-                        Selecione
-                    </option>
+        </div>
 
 
-                    @foreach ($tipos as $tipo)
+        {{-- ======================================================== --}}
+        {{-- INFORMAÇÕES --}}
+        {{-- ======================================================== --}}
 
-                        <option
-                            value="{{ $tipo->id }}"
-                            @selected(
-                                old('tipo_peca_id') == $tipo->id
-                            )
-                        >
+        <div class="formulario-secao">
 
-                            {{ $tipo->nome }}
+            <div class="formulario-secao-cabecalho">
 
-                        </option>
+                <h2>
+                    Informações gerais
+                </h2>
 
-                    @endforeach
-
-                </select>
+                <p>
+                    Estes campos são opcionais e podem ser alterados depois.
+                </p>
 
             </div>
 
+
+            {{-- DESCRIÇÃO --}}
 
             <div class="campo">
 
@@ -348,11 +224,23 @@
                 <textarea
                     id="descricao"
                     name="descricao"
-                    placeholder="Descrição geral do modelo..."
+                    rows="4"
+                    placeholder="Descreva brevemente este modelo..."
                 >{{ old('descricao') }}</textarea>
+
+
+                @error('descricao')
+
+                    <div class="mensagem-campo-erro">
+                        {{ $message }}
+                    </div>
+
+                @enderror
 
             </div>
 
+
+            {{-- OBSERVAÇÕES --}}
 
             <div class="campo">
 
@@ -363,32 +251,77 @@
                 <textarea
                     id="observacoes"
                     name="observacoes"
-                    placeholder="Informações importantes sobre o modelo..."
+                    rows="4"
+                    placeholder="Alguma informação importante sobre este modelo..."
                 >{{ old('observacoes') }}</textarea>
 
-            </div>
 
+                @error('observacoes')
 
-            <div class="acoes">
+                    <div class="mensagem-campo-erro">
+                        {{ $message }}
+                    </div>
 
-                <a
-                    href="{{ route('pecas.index') }}"
-                    class="cancelar"
-                >
-                    Cancelar
-                </a>
-
-                <button type="submit">
-                    Salvar modelo
-                </button>
+                @enderror
 
             </div>
 
-        </form>
+        </div>
 
-    </div>
 
-</main>
+        {{-- ======================================================== --}}
+        {{-- AVISO DO PRÓXIMO PASSO --}}
+        {{-- ======================================================== --}}
 
-</body>
-</html>
+        <div class="aviso-proximo-passo">
+
+            <div class="aviso-proximo-passo-icone">
+                ✓
+            </div>
+
+            <div>
+
+                <strong>
+                    Depois de salvar
+                </strong>
+
+                <p>
+                    Você poderá adicionar a foto principal,
+                    medidas, materiais e informações de
+                    Marcenaria, Preparação, Cola e Estofamento.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- ======================================================== --}}
+        {{-- AÇÕES --}}
+        {{-- ======================================================== --}}
+
+        <div class="acoes-formulario">
+
+            <a
+                href="{{ route('pecas.index') }}"
+                class="botao botao-secundario"
+            >
+                Cancelar
+            </a>
+
+
+            <button
+                type="submit"
+                class="botao botao-grande"
+            >
+                Salvar modelo
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@endsection

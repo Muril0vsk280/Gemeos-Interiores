@@ -19,7 +19,7 @@ use App\Http\Controllers\UsuarioController;
 */
 
 Route::get('/', function () {
-    return redirect('/login');
+    return redirect()->route('login');
 });
 
 
@@ -27,9 +27,6 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | LOGIN
 |--------------------------------------------------------------------------
-|
-| Apenas usuários que ainda não estão logados.
-|
 */
 
 Route::middleware('guest')->group(function () {
@@ -38,6 +35,7 @@ Route::middleware('guest')->group(function () {
         '/login',
         [LoginController::class, 'show']
     )->name('login');
+
 
     Route::post(
         '/login',
@@ -51,10 +49,6 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 | USUÁRIOS AUTENTICADOS
 |--------------------------------------------------------------------------
-|
-| Qualquer usuário logado pode acessar dashboard,
-| pesquisar modelos e consultar um modelo.
-|
 */
 
 Route::middleware('auth')->group(function () {
@@ -88,9 +82,6 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     | ADMINISTRADOR / ENCARREGADO
     |--------------------------------------------------------------------------
-    |
-    | Somente esses cargos podem cadastrar ou alterar informações.
-    |
     */
 
     Route::middleware(
@@ -98,107 +89,9 @@ Route::middleware('auth')->group(function () {
     )->group(function () {
 
 
-
-    /*
-|--------------------------------------------------------------------------
-| SOMENTE ADMINISTRADOR
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(
-    'cargo:Administrador'
-)->group(function () {
-
-    Route::get(
-        '/usuarios',
-        [UsuarioController::class, 'index']
-    )->name('usuarios.index');
-
-
-    Route::get(
-        '/usuarios/create',
-        [UsuarioController::class, 'create']
-    )->name('usuarios.create');
-
-
-    Route::post(
-        '/usuarios',
-        [UsuarioController::class, 'store']
-    )->name('usuarios.store');
-
-
-    Route::get(
-        '/usuarios/{usuario}/edit',
-        [UsuarioController::class, 'edit']
-    )->name('usuarios.edit');
-
-
-    Route::put(
-        '/usuarios/{usuario}',
-        [UsuarioController::class, 'update']
-    )->name('usuarios.update');
-   
-    Route::delete(
-    '/pecas/{peca}',
-    [PecaController::class, 'destroy']
-)->name('pecas.destroy');
-
-    Route::delete(
-    '/usuarios/{usuario}',
-    [UsuarioController::class, 'destroy']
-)->name('usuarios.destroy');
-
-});
-
-/*
-|--------------------------------------------------------------------------
-| MEDIDAS
-|--------------------------------------------------------------------------
-*/
-
-Route::post(
-    '/pecas/{peca}/medidas',
-    [MedidaController::class, 'store']
-)->name('pecas.medidas.store');
-
-
-Route::get(
-    '/pecas/{peca}/medidas/{medida}/edit',
-    [MedidaController::class, 'edit']
-)->name('pecas.medidas.edit');
-
-
-Route::put(
-    '/pecas/{peca}/medidas/{medida}',
-    [MedidaController::class, 'update']
-)->name('pecas.medidas.update');
-
-    /*
-|--------------------------------------------------------------------------
-| MATERIAIS
-|--------------------------------------------------------------------------
-*/
-
-Route::post(
-    '/pecas/{peca}/materiais',
-    [PecaMaterialController::class, 'store']
-)->name('pecas.materiais.store');
-
-
-Route::get(
-    '/pecas/{peca}/materiais/{pecaMaterial}/edit',
-    [PecaMaterialController::class, 'edit']
-)->name('pecas.materiais.edit');
-
-
-Route::put(
-    '/pecas/{peca}/materiais/{pecaMaterial}',
-    [PecaMaterialController::class, 'update']
-)->name('pecas.materiais.update');
-
         /*
         |--------------------------------------------------------------------------
-        | CADASTRAR MODELO
+        | MODELOS
         |--------------------------------------------------------------------------
         */
 
@@ -213,12 +106,6 @@ Route::put(
             [PecaController::class, 'store']
         )->name('pecas.store');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | EDITAR MODELO
-        |--------------------------------------------------------------------------
-        */
 
         Route::get(
             '/pecas/{peca}/edit',
@@ -244,6 +131,18 @@ Route::put(
         )->name('pecas.medidas.store');
 
 
+        Route::get(
+            '/pecas/{peca}/medidas/{medida}/edit',
+            [MedidaController::class, 'edit']
+        )->name('pecas.medidas.edit');
+
+
+        Route::put(
+            '/pecas/{peca}/medidas/{medida}',
+            [MedidaController::class, 'update']
+        )->name('pecas.medidas.update');
+
+
         /*
         |--------------------------------------------------------------------------
         | ETAPAS
@@ -255,12 +154,6 @@ Route::put(
             [PecaEtapaController::class, 'store']
         )->name('pecas.etapas.store');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | EDITAR ETAPA
-        |--------------------------------------------------------------------------
-        */
 
         Route::get(
             '/pecas/{peca}/etapas/{etapa}/edit',
@@ -286,6 +179,24 @@ Route::put(
         )->name('pecas.materiais.store');
 
 
+        Route::get(
+            '/pecas/{peca}/materiais/{pecaMaterial}/edit',
+            [PecaMaterialController::class, 'edit']
+        )->name('pecas.materiais.edit');
+
+
+        Route::put(
+            '/pecas/{peca}/materiais/{pecaMaterial}',
+            [PecaMaterialController::class, 'update']
+        )->name('pecas.materiais.update');
+
+
+        Route::delete(
+            '/pecas/{peca}/materiais/{pecaMaterial}',
+            [PecaMaterialController::class, 'destroy']
+        )->name('pecas.materiais.destroy');
+
+
         /*
         |--------------------------------------------------------------------------
         | FOTOS
@@ -296,13 +207,99 @@ Route::put(
             '/pecas/{peca}/fotos',
             [FotoController::class, 'store']
         )->name('pecas.fotos.store');
-        
+
+
         Route::delete(
             '/pecas/{peca}/fotos/{foto}',
             [FotoController::class, 'destroy']
         )->name('pecas.fotos.destroy');
 
-    });
+
+        /*
+        |--------------------------------------------------------------------------
+        | FOTO PRINCIPAL
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            '/pecas/{peca}/foto-principal',
+            [FotoController::class, 'storePrincipal']
+        )->name('pecas.foto-principal.store');
+
+
+        Route::put(
+            '/pecas/{peca}/foto-principal/{foto}',
+            [FotoController::class, 'updatePrincipal']
+        )->name('pecas.foto-principal.update');
+
+    }); // FIM ADMINISTRADOR / ENCARREGADO
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SOMENTE ADMINISTRADOR
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware(
+        'cargo:Administrador'
+    )->group(function () {
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | USUÁRIOS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/usuarios',
+            [UsuarioController::class, 'index']
+        )->name('usuarios.index');
+
+
+        Route::get(
+            '/usuarios/create',
+            [UsuarioController::class, 'create']
+        )->name('usuarios.create');
+
+
+        Route::post(
+            '/usuarios',
+            [UsuarioController::class, 'store']
+        )->name('usuarios.store');
+
+
+        Route::get(
+            '/usuarios/{usuario}/edit',
+            [UsuarioController::class, 'edit']
+        )->name('usuarios.edit');
+
+
+        Route::put(
+            '/usuarios/{usuario}',
+            [UsuarioController::class, 'update']
+        )->name('usuarios.update');
+
+
+        Route::delete(
+            '/usuarios/{usuario}',
+            [UsuarioController::class, 'destroy']
+        )->name('usuarios.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXCLUIR MODELO
+        |--------------------------------------------------------------------------
+        */
+
+        Route::delete(
+            '/pecas/{peca}',
+            [PecaController::class, 'destroy']
+        )->name('pecas.destroy');
+
+    }); // FIM SOMENTE ADMINISTRADOR
 
 
     /*
@@ -310,7 +307,7 @@ Route::put(
     | VISUALIZAR MODELO
     |--------------------------------------------------------------------------
     |
-    | Deve ficar depois de /pecas/create e /pecas/{peca}/edit.
+    | Qualquer usuário autenticado pode visualizar.
     |
     */
 
@@ -331,4 +328,4 @@ Route::put(
         [LoginController::class, 'logout']
     )->name('logout');
 
-});
+}); // FIM AUTH
