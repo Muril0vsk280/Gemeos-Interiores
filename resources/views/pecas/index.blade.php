@@ -1,442 +1,284 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+@extends('layouts.app')
 
-<head>
 
-    <meta charset="UTF-8">
+@section('title', 'Modelos - Gêmeos Interiores')
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
 
-    <title>
-        Modelos - Gêmeos Interiores
-    </title>
+@php
 
-    <style>
+    $cargoUsuario =
+        auth()->user()?->cargo?->nome;
 
-        * {
-            box-sizing: border-box;
-        }
+    $podeEditar = in_array(
+        $cargoUsuario,
+        [
+            'Administrador',
+            'Encarregado'
+        ],
+        true
+    );
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
+@endphp
 
-            background: #f5f5f5;
-            color: #222;
-        }
 
-        header {
-            background: #1f1f1f;
-            color: white;
+@section('content')
 
-            padding: 20px 40px;
 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+{{-- ============================================================ --}}
+{{-- CABEÇALHO --}}
+{{-- ============================================================ --}}
 
-        header a {
-            color: white;
-            text-decoration: none;
-        }
+<div class="cabecalho-listagem">
 
-        main {
-            max-width: 1200px;
+    <div class="titulo-pagina">
 
-            margin: auto;
+        <h1>
+            Modelos
+        </h1>
 
-            padding: 40px 20px;
-        }
-
-        .topo {
-            display: flex;
-
-            justify-content: space-between;
-            align-items: center;
-
-            gap: 20px;
-
-            margin-bottom: 25px;
-        }
-
-        h1 {
-            margin: 0;
-        }
-
-        .botao {
-            display: inline-block;
-
-            background: #222;
-            color: white;
-
-            padding: 12px 18px;
-
-            border-radius: 7px;
-
-            text-decoration: none;
-
-            font-weight: bold;
-
-            border: none;
-
-            cursor: pointer;
-        }
-
-        .filtros {
-            background: white;
-
-            padding: 20px;
-
-            border-radius: 10px;
-
-            margin-bottom: 25px;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .filtros form {
-            display: grid;
-
-            grid-template-columns:
-                2fr 1fr auto auto;
-
-            gap: 10px;
-        }
-
-        input,
-        select {
-            width: 100%;
-
-            padding: 12px;
-
-            border: 1px solid #ccc;
-
-            border-radius: 7px;
-
-            font-size: 15px;
-        }
-
-        .limpar {
-            display: inline-flex;
-
-            align-items: center;
-            justify-content: center;
-
-            padding: 12px 18px;
-
-            background: #eee;
-            color: #222;
-
-            border-radius: 7px;
-
-            text-decoration: none;
-
-            font-weight: bold;
-        }
-
-        .resultado-info {
-            color: #777;
-
-            margin-bottom: 15px;
-        }
-
-        .lista {
-            display: grid;
-
-            grid-template-columns:
-                repeat(auto-fill, minmax(280px, 1fr));
-
-            gap: 15px;
-        }
-
-        .modelo {
-            background: white;
-
-            padding: 20px;
-
-            border-radius: 10px;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .codigo {
-            color: #777;
-
-            font-size: 13px;
-
-            font-weight: bold;
-
-            margin-bottom: 7px;
-        }
-
-        .modelo h2 {
-            margin:
-                0 0 8px;
-
-            font-size: 21px;
-        }
-
-        .tipo {
-            color: #777;
-
-            margin-bottom: 20px;
-        }
-
-        .abrir {
-            display: inline-block;
-
-            padding: 9px 14px;
-
-            background: #222;
-            color: white;
-
-            border-radius: 6px;
-
-            text-decoration: none;
-
-            font-weight: bold;
-        }
-
-        .sem-resultados {
-            background: white;
-
-            padding: 30px;
-
-            border-radius: 10px;
-
-            text-align: center;
-
-            color: #777;
-        }
-
-        .paginacao {
-            margin-top: 30px;
-        }
-
-        @media (max-width: 750px) {
-
-            header {
-                padding: 18px 20px;
-            }
-
-            .topo {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .filtros form {
-                grid-template-columns: 1fr;
-            }
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-<header>
-
-    <a href="{{ route('dashboard') }}">
-
-        <strong>
-            GÊMEOS INTERIORES
-        </strong>
-
-    </a>
-
-
-    <span>
-
-        {{ auth()->user()->name }}
-
-        @if (auth()->user()->cargo)
-
-            —
-            {{ auth()->user()->cargo->nome }}
-
-        @endif
-
-    </span>
-
-</header>
-
-
-<main>
-
-        @if (session('sucesso'))
-
-    <div
-        style="
-            background:#e5f7e8;
-            color:#176b2c;
-            padding:15px;
-            border-radius:8px;
-            margin-bottom:20px;
-        "
-    >
-        {{ session('sucesso') }}
-    </div>
-
-@endif
-
-
-
-    @php
-
-        $cargoUsuario = auth()->user()->cargo?->nome;
-
-        $podeEditar = in_array(
-            $cargoUsuario,
-            [
-                'Administrador',
-                'Encarregado'
-            ],
-            true
-        );
-
-    @endphp
-
-
-    <div class="topo">
-
-        <div>
-
-            <h1>
-                Modelos
-            </h1>
-
-            <p style="color:#777;">
-                Consulte os modelos cadastrados.
-            </p>
-
-        </div>
-
-
-        @if ($podeEditar)
-
-            <a
-                href="{{ route('pecas.create') }}"
-                class="botao"
-            >
-                + Novo modelo
-            </a>
-
-        @endif
+        <p>
+            Encontre rapidamente o modelo que você precisa.
+        </p>
 
     </div>
 
 
-    {{-- ============================================================ --}}
-    {{-- PESQUISA --}}
-    {{-- ============================================================ --}}
+    @if ($podeEditar)
 
-    <div class="filtros">
-
-        <form
-            method="GET"
-            action="{{ route('pecas.index') }}"
+        <a
+            href="{{ route('pecas.create') }}"
+            class="botao"
         >
+            + Novo modelo
+        </a>
+
+    @endif
+
+</div>
+
+
+{{-- ============================================================ --}}
+{{-- PESQUISA PRINCIPAL --}}
+{{-- ============================================================ --}}
+
+<div class="card pesquisa-modelos">
+
+    <form
+        method="GET"
+        action="{{ route('pecas.index') }}"
+    >
+
+        <label
+            for="busca"
+            class="pesquisa-modelos-label"
+        >
+            Qual modelo você procura?
+        </label>
+
+
+        <div class="pesquisa-modelos-principal">
 
             <input
                 type="text"
                 name="busca"
-                value="{{ $busca }}"
-                placeholder="Pesquisar por código ou nome..."
+                id="busca"
+                value="{{ $busca ?? '' }}"
+                placeholder="Digite o nome ou código do modelo..."
+                autocomplete="off"
                 autofocus
             >
 
 
-            <select name="tipo">
-
-                <option value="">
-                    Todos os tipos
-                </option>
-
-
-                @foreach ($tipos as $tipo)
-
-                    <option
-                        value="{{ $tipo->id }}"
-                        @selected(
-                            (string) $tipoId ===
-                            (string) $tipo->id
-                        )
-                    >
-
-                        {{ $tipo->nome }}
-
-                    </option>
-
-                @endforeach
-
-            </select>
-
-
             <button
                 type="submit"
-                class="botao"
+                class="botao botao-grande"
             >
-                Pesquisar
+                🔍 Pesquisar
             </button>
 
+        </div>
 
-            @if ($busca !== '' || $tipoId)
+
+        {{-- ======================================================== --}}
+        {{-- FILTROS SECUNDÁRIOS --}}
+        {{-- ======================================================== --}}
+
+        <details
+            class="filtros-avancados"
+            @if (!empty($tipoId)) open @endif
+        >
+
+            <summary>
+                Mais filtros
+            </summary>
+
+
+            <div class="filtros-avancados-conteudo">
+
+                <div class="campo">
+
+                    <label for="tipo">
+                        Tipo do modelo
+                    </label>
+
+                    <select
+                        name="tipo"
+                        id="tipo"
+                    >
+
+                        <option value="">
+                            Todos os tipos
+                        </option>
+
+
+                        @foreach ($tipos as $tipo)
+
+                            <option
+                                value="{{ $tipo->id }}"
+                                @selected(
+                                    (string) ($tipoId ?? '') ===
+                                    (string) $tipo->id
+                                )
+                            >
+
+                                {{ $tipo->nome }}
+
+                            </option>
+
+                        @endforeach
+
+                    </select>
+
+                </div>
+
+
+                <div class="filtros-botoes">
+
+                    <button
+                        type="submit"
+                        class="botao"
+                    >
+                        Aplicar filtros
+                    </button>
+
+
+                    @if (
+                        !empty($busca) ||
+                        !empty($tipoId)
+                    )
+
+                        <a
+                            href="{{ route('pecas.index') }}"
+                            class="botao botao-secundario"
+                        >
+                            Limpar filtros
+                        </a>
+
+                    @endif
+
+                </div>
+
+            </div>
+
+        </details>
+
+    </form>
+
+</div>
+
+
+{{-- ============================================================ --}}
+{{-- QUANTIDADE DE RESULTADOS --}}
+{{-- ============================================================ --}}
+
+<div class="resultado-modelos">
+
+    @if ($pecas->total() === 1)
+
+        <strong>
+            1 modelo encontrado
+        </strong>
+
+    @else
+
+        <strong>
+            {{ $pecas->total() }} modelos encontrados
+        </strong>
+
+    @endif
+
+</div>
+
+
+{{-- ============================================================ --}}
+{{-- RESULTADOS --}}
+{{-- ============================================================ --}}
+
+@if ($pecas->count())
+
+    <div class="grade-listagem-modelos">
+
+        @foreach ($pecas as $peca)
+
+            @php
+
+                $fotoModelo =
+                    $peca->fotos
+                        ->whereNull('etapa_id')
+                        ->sortBy('ordem')
+                        ->first();
+
+            @endphp
+
+
+            <article class="card-modelo-listagem">
+
+
+                {{-- FOTO --}}
 
                 <a
-                    href="{{ route('pecas.index') }}"
-                    class="limpar"
+                    href="{{ route(
+                        'pecas.show',
+                        $peca
+                    ) }}"
+                    class="card-modelo-foto"
                 >
-                    Limpar
+
+                    @if ($fotoModelo)
+
+                        <img
+                            src="{{ asset(
+                                'storage/' .
+                                $fotoModelo->caminho
+                            ) }}"
+                            alt="{{ $peca->nome }}"
+                            loading="lazy"
+                        >
+
+                    @else
+
+                        <div class="card-modelo-sem-foto">
+
+                            <span>
+                                📷
+                            </span>
+
+                            <small>
+                                Sem foto
+                            </small>
+
+                        </div>
+
+                    @endif
+
                 </a>
 
-            @endif
 
-        </form>
+                {{-- INFORMAÇÕES --}}
 
-    </div>
+                <div class="card-modelo-conteudo">
 
-
-    {{-- ============================================================ --}}
-    {{-- QUANTIDADE DE RESULTADOS --}}
-    {{-- ============================================================ --}}
-
-    <div class="resultado-info">
-
-        @if ($pecas->total() === 1)
-
-            1 modelo encontrado.
-
-        @else
-
-            {{ $pecas->total() }} modelos encontrados.
-
-        @endif
-
-    </div>
-
-
-    {{-- ============================================================ --}}
-    {{-- MODELOS --}}
-    {{-- ============================================================ --}}
-
-    @if ($pecas->count())
-
-        <div class="lista">
-
-            @foreach ($pecas as $peca)
-
-                <div class="modelo">
-
-                    <div class="codigo">
+                    <div class="card-modelo-codigo">
 
                         {{ $peca->codigo }}
 
@@ -450,9 +292,9 @@
                     </h2>
 
 
-                    <div class="tipo">
+                    <div class="card-modelo-tipo">
 
-                        {{ $peca->tipo->nome }}
+                        {{ $peca->tipo?->nome ?? 'Sem tipo' }}
 
                     </div>
 
@@ -462,43 +304,72 @@
                             'pecas.show',
                             $peca
                         ) }}"
-                        class="abrir"
+                        class="botao card-modelo-abrir"
                     >
                         Abrir modelo
                     </a>
 
                 </div>
 
-            @endforeach
+            </article>
 
-        </div>
+        @endforeach
+
+    </div>
 
 
-        <div class="paginacao">
+    {{-- ============================================================ --}}
+    {{-- PAGINAÇÃO --}}
+    {{-- ============================================================ --}}
+
+    @if ($pecas->hasPages())
+
+        <div class="paginacao-modelos">
 
             {{ $pecas->links() }}
 
         </div>
 
-    @else
-
-        <div class="sem-resultados">
-
-            <strong>
-                Nenhum modelo encontrado.
-            </strong>
-
-            <p>
-                Tente pesquisar por outro código,
-                nome ou tipo.
-            </p>
-
-        </div>
-
     @endif
 
-</main>
 
-</body>
+@else
 
-</html>
+    <div class="card sem-modelos">
+
+        <div class="sem-modelos-icone">
+            🔍
+        </div>
+
+
+        <h2>
+            Nenhum modelo encontrado
+        </h2>
+
+
+        <p>
+            Tente pesquisar outro nome, código
+            ou alterar os filtros.
+        </p>
+
+
+        @if (
+            !empty($busca) ||
+            !empty($tipoId)
+        )
+
+            <a
+                href="{{ route('pecas.index') }}"
+                class="botao botao-secundario"
+            >
+                Limpar pesquisa
+            </a>
+
+        @endif
+
+    </div>
+
+@endif
+
+
+@endsection

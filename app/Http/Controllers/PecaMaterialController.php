@@ -164,13 +164,12 @@ class PecaMaterialController extends Controller
         |--------------------------------------------------------------------------
         | SEGURANÇA
         |--------------------------------------------------------------------------
-        |
-        | Impede acessar um material pertencente a outra peça alterando
-        | manualmente o ID na URL.
-        |
         */
 
-        if ((int) $pecaMaterial->peca_id !== (int) $peca->id) {
+        if (
+            (int) $pecaMaterial->peca_id !==
+            (int) $peca->id
+        ) {
             abort(404);
         }
 
@@ -203,7 +202,10 @@ class PecaMaterialController extends Controller
         PecaMaterial $pecaMaterial
     ) {
 
-        if ((int) $pecaMaterial->peca_id !== (int) $peca->id) {
+        if (
+            (int) $pecaMaterial->peca_id !==
+            (int) $peca->id
+        ) {
             abort(404);
         }
 
@@ -311,6 +313,110 @@ class PecaMaterialController extends Controller
             ->with(
                 'sucesso',
                 'Material atualizado com sucesso.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | EXCLUIR MATERIAL DA PEÇA
+    |--------------------------------------------------------------------------
+    |
+    | Exclui somente o vínculo com esta peça/etapa.
+    | O material original continua existindo na tabela materiais,
+    | pois pode estar sendo utilizado por outros modelos.
+    |
+    */
+
+    public function destroy(
+        Peca $peca,
+        PecaMaterial $pecaMaterial
+    ) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEGURANÇA
+        |--------------------------------------------------------------------------
+        |
+        | Evita excluir um material de outra peça alterando o ID
+        | manualmente na URL.
+        |
+        */
+
+        if (
+            (int) $pecaMaterial->peca_id !==
+            (int) $peca->id
+        ) {
+            abort(404);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CARREGA INFORMAÇÕES ANTES DE EXCLUIR
+        |--------------------------------------------------------------------------
+        */
+
+        $pecaMaterial->load([
+            'material',
+            'etapa',
+        ]);
+
+
+        $nomeMaterial =
+            $pecaMaterial->material?->nome
+            ?? 'Material';
+
+
+        $nomeEtapa =
+            $pecaMaterial->etapa?->nome;
+
+
+        $registroId =
+            $pecaMaterial->id;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXCLUI O VÍNCULO
+        |--------------------------------------------------------------------------
+        */
+
+        $pecaMaterial->delete();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | HISTÓRICO
+        |--------------------------------------------------------------------------
+        */
+
+        $descricao =
+            "Removeu o material {$nomeMaterial}";
+
+
+        if ($nomeEtapa) {
+            $descricao .= " da etapa {$nomeEtapa}";
+        }
+
+
+        $descricao .= '.';
+
+
+        HistoricoService::registrar(
+            $peca,
+            'MATERIAL_REMOVIDO',
+            $descricao,
+            'peca_materiais',
+            $registroId
+        );
+
+
+        return redirect()
+            ->route('pecas.show', $peca)
+            ->with(
+                'sucesso',
+                "Material {$nomeMaterial} removido com sucesso."
             );
     }
 }
